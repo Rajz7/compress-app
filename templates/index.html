@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compress App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"], input[type="number"], select, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007cba;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #005a87;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            margin-top: 15px;
+            display: none;
+        }
+        .loading-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #007cba, #4CAF50, #007cba);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            animation: loading 2s ease-in-out infinite;
+            width: 100%;
+        }
+        .loading-text {
+            text-align: center;
+            margin-top: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:disabled:hover {
+            background-color: #ccc;
+        }
+        .tips {
+            background-color: #e8f4f8;
+            border: 1px solid #b8e6f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #2c5aa0;
+        }
+        .tips h4 {
+            margin: 0 0 8px 0;
+            color: #1a4480;
+            font-size: 14px;
+        }
+        .tips ul {
+            margin: 8px 0 0 0;
+            padding-left: 18px;
+        }
+        .tips li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Compression App</h1>
+
+    <!-- Image Compression Section -->
+    <div class="section">
+        <h2>Image Compression</h2>
+        <div class="form-group">
+            <label for="imageInput">Select Image File:</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="imageQuality">Quality (1-100):</label>
+            <input type="number" id="imageQuality" min="1" max="100" value="50">
+        </div>
+        <button onclick="uploadImage()">Upload Image</button>
+        <button onclick="compressImage()" id="compressImageBtn" style="display:none;">Compress Image</button>
+        
+        <div class="loading" id="imageLoading">
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-text">Compressing image, please wait...</div>
+        </div>
+        
+        <div class="result" id="imageResult"></div>
+        <div id="imageOutput"></div>
+    </div>
+
+    <!-- PDF Compression Section -->
+    <div class="section">
+        <h2>PDF Compression</h2>
+        <div class="form-group">
+            <label for="pdfInput">Select PDF File:</label>
+            <input type="file" id="pdfInput" accept="application/pdf">
+        </div>
+        <div class="form-group">
+            <label for="compressionMode">Compression Mode:</label>
+            <select id="compressionMode">
+                <option value="images">Images Only - Compress embedded images</option>
+                <option value="structure">Structure Only - Remove metadata, compress streams</option>
+                <option value="full">Full Compression - Images + Structure optimization</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="pdfQuality">Quality (1-100):</label>
+            <input type="number" id="pdfQuality" min="1" max="100" value="50">
+        </div>
+        
+        <div class="tips">
+            <h4>💡 Compression Tips:</h4>
+            <ul>
+                <li><strong>No size reduction?</strong> If your PDF doesn't compress much and images look pixelated, it might already be compressed.</li>
+                <li><strong>Missing content?</strong> Try different compression modes:
+                    <ul>
+                        <li><em>Images Only</em> - Safe for documents with photos</li>
+                        <li><em>Structure Only</em> - Good for text-heavy documents</li>
+                        <li><em>Full Compression</em> - Maximum reduction but may alter formatting</li>
+                    </ul>
+                </li>
+                <li><strong>Start with "Images Only"</strong> for the safest compression if unsure.</li>
+            </ul>
+        </div>
+        
+        <button onclick="uploadPdf()">Upload PDF</button>
+        <button onclick="compressPdf()" id="compressPdfBtn" style="display:none;">Compress PDF</button>
+        
+        <div class="loading" id="pdfLoading">
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-text">Compressing PDF, this may take a moment...</div>
+        </div>
+        
+        <div class="result" id="pdfResult"></div>
+        <div id="pdfOutput"></div>
+    </div>
+
+    <script>
+        let uploadedImageFile = null;
+        let uploadedPdfFile = null;
+
+        async function uploadImage() {
+            const fileInput = document.getElementById("imageInput");
+            const file = fileInput.files[0];
+            const resultDiv = document.getElementById("imageResult");
+
+            if (!file) {
+                showResult(resultDiv, "Please select an image file first", "error");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/upload-image/", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                uploadedImageFile = result.filename;
+                
+                showResult(resultDiv, `Image uploaded successfully: ${result.filename}`, "success");
+                document.getElementById("compressImageBtn").style.display = "inline-block";
+                
+            } catch (error) {
+                showResult(resultDiv, `Upload failed: ${error.message}`, "error");
+            }
+        }
+
+        async function compressImage() {
+            if (!uploadedImageFile) {
+                document.getElementById("imageResult").innerHTML = "No image uploaded";
+                return;
+            }
+
+            const quality = document.getElementById("imageQuality").value;
+            const resultDiv = document.getElementById("imageResult");
+            const loadingDiv = document.getElementById("imageLoading");
+            const compressBtn = document.getElementById("compressImageBtn");
+
+            // Show loading bar and disable button
+            showLoading(loadingDiv, compressBtn, resultDiv);
+
+            try {
+                const response = await fetch(`/compress-image/${uploadedImageFile}?quality=${quality}`, {
+                    method: "POST"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Compression failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                hideLoading(loadingDiv, compressBtn);
+                showResult(resultDiv, result.message, "success");
+                
+            } catch (error) {
+                hideLoading(loadingDiv, compressBtn);
+                showResult(resultDiv, `Compression failed: ${error.message}`, "error");
+            }
+        }
+
+        async function uploadPdf() {
+            const fileInput = document.getElementById("pdfInput");
+            const file = fileInput.files[0];
+            const resultDiv = document.getElementById("pdfResult");
+
+            if (!file) {
+                showResult(resultDiv, "Please select a PDF file first", "error");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/upload-pdf/", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Upload failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                uploadedPdfFile = result.filename;
+                
+                showResult(resultDiv, `PDF uploaded successfully: ${result.filename}`, "success");
+                document.getElementById("compressPdfBtn").style.display = "inline-block";
+                
+            } catch (error) {
+                showResult(resultDiv, `Upload failed: ${error.message}`, "error");
+            }
+        }
+
+        async function compressPdf() {
+            if (!uploadedPdfFile) {
+                document.getElementById("pdfResult").innerHTML = "No PDF uploaded";
+                return;
+            }
+
+            const mode = document.getElementById("compressionMode").value;
+            const quality = document.getElementById("pdfQuality").value;
+            const resultDiv = document.getElementById("pdfResult");
+            const loadingDiv = document.getElementById("pdfLoading");
+            const compressBtn = document.getElementById("compressPdfBtn");
+
+            // Show loading bar and disable button
+            showLoading(loadingDiv, compressBtn, resultDiv);
+
+            try {
+                const response = await fetch(`/compress-pdf/${uploadedPdfFile}?mode=${mode}&quality=${quality}`, {
+                    method: "POST"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Compression failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                hideLoading(loadingDiv, compressBtn);
+                showResult(resultDiv, result.message, "success");
+                
+            } catch (error) {
+                hideLoading(loadingDiv, compressBtn);
+                showResult(resultDiv, `Compression failed: ${error.message}`, "error");
+            }
+        }
+
+        function showResult(element, message, type) {
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+            element.style.display = "block";
+        }
+
+        function showLoading(loadingDiv, button, resultDiv) {
+            loadingDiv.style.display = "block";
+            button.disabled = true;
+            button.innerHTML = "Compressing...";
+            resultDiv.style.display = "none"; // Hide previous results
+        }
+
+        function hideLoading(loadingDiv, button) {
+            loadingDiv.style.display = "none";
+            button.disabled = false;
+            // Reset button text based on type
+            if (button.id === "compressImageBtn") {
+                button.innerHTML = "Compress Image";
+            } else if (button.id === "compressPdfBtn") {
+                button.innerHTML = "Compress PDF";
+            }
+        }
+    </script>
+</body>
+</html>
